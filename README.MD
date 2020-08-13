@@ -1,5 +1,8 @@
 # A Simple and Fast Implementation of Faster R-CNN
 
+## Note
+This is a forked repository from https://github.com/chenyuntc/simple-faster-rcnn-pytorch/ which is enabled to implement FASTER-RCNN without using Cython and other packages.
+
 ## 1. Introduction
 
 **[Update:]** I've further simplified the code to pytorch 1.5, torchvision 0.6, and replace the customized ops roipool and nms with the one from torchvision.  if you want the old version code, please checkout branch [v1.0](https://github.com/chenyuntc/simple-faster-rcnn-pytorch/tree/v1.0)
