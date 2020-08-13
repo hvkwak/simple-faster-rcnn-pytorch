@@ -1,26 +1,27 @@
 import os
-import torch as t
-from utils.config import opt
-from model import FasterRCNNVGG16
-from trainer import FasterRCNNTrainer
-from data.util import  read_image
-from utils.vis_tool import vis_bbox
-from utils import array_tool as at
+import torch
+from utils.util import read_image
+from models.faster_rcnn_vgg16 import FasterRCNNVGG16
 
 
-img = read_image('misc/demo.jpg')
-img = t.from_numpy(img)[None]
+## load image
+img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
+img = torch.from_numpy(img)[None]
 
-faster_rcnn = FasterRCNNVGG16()
-trainer = FasterRCNNTrainer(faster_rcnn).cuda()
+## load pretrained model
+path = '/home/hyobin/Documents/FASTRCNN_demo/chainer_best_model_converted_to_pytorch_0.7053.pth'
+pretrained_dict = torch.load(path)
 
-trainer.load('/home/cy/chainer_best_model_converted_to_pytorch_0.7053.pth')
-opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
-_bboxes, _labels, _scores = trainer.faster_rcnn.predict(img,visualize=True)
-vis_bbox(at.tonumpy(img[0]),
-         at.tonumpy(_bboxes[0]),
-         at.tonumpy(_labels[0]).reshape(-1),
-         at.tonumpy(_scores[0]).reshape(-1))
+## create fasterRCNNVGG16
+faster_rcnn_extractor = FasterRCNNVGG16()
 
+## load extractor and load its dict
+faster_rcnn_extractor_dict = faster_rcnn_extractor.state_dict()
 
-         
+## update its dict to pretrained_dict
+## make sure that there are no irrelevant values
+pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in faster_rcnn_extractor_dict}
+faster_rcnn_extractor_dict.update(pretrained_dict) # update
+faster_rcnn_extractor.load_state_dict(faster_rcnn_extractor_dict) 
+
+print(faster_rcnn_extractor(img))

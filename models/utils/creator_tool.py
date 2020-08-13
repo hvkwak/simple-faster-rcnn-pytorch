@@ -1,9 +1,10 @@
 import numpy as np
-import torch
-from torchvision.ops import nms
-from model.utils.bbox_tools import bbox2loc, bbox_iou, loc2bbox
+
+from models.utils.bbox_tools import bbox2loc, bbox_iou, loc2bbox
+from models.utils.nms import non_maximum_suppression
 
 
+'''
 class ProposalTargetCreator(object):
     """Assign ground truth bounding boxes to given RoIs.
 
@@ -15,7 +16,7 @@ class ProposalTargetCreator(object):
     Faster R-CNN: Towards Real-Time Object Detection with \
     Region Proposal Networks. NIPS 2015.
 
-    Args:
+    Args: #
         n_sample (int): The number of sampled regions.
         pos_ratio (float): Fraction of regions that is labeled as a
             foreground.
@@ -25,15 +26,22 @@ class ProposalTargetCreator(object):
             if IoU is in
             [:obj:`neg_iou_thresh_hi`, :obj:`neg_iou_thresh_hi`).
         neg_iou_thresh_lo (float): See above.
-
     """
 
+    
+    # [:obj:`neg_iou_thresh_hi`, :obj:`neg_iou_thresh_hi`) = [0.0, 0.5)
+    # so regions are classified into two groups:
+    # label with 1 = foreground(pos)
+    # label with -1 = background(neg)
     def __init__(self,
                  n_sample=128,
                  pos_ratio=0.25, pos_iou_thresh=0.5,
                  neg_iou_thresh_hi=0.5, neg_iou_thresh_lo=0.0
                  ):
         self.n_sample = n_sample
+        
+        # I don't see a reason why pos_ratio is needed.
+        # -> yes, we are using only (default)25% of the sampled foreground.
         self.pos_ratio = pos_ratio
         self.pos_iou_thresh = pos_iou_thresh
         self.neg_iou_thresh_hi = neg_iou_thresh_hi
@@ -88,8 +96,10 @@ class ProposalTargetCreator(object):
                 value 0 is the background.
 
         """
+        # the number of ground truth bounding boxes
         n_bbox, _ = bbox.shape
 
+        # put everything together(axis = 0). roi and (GT) bounding boxes
         roi = np.concatenate((roi, bbox), axis=0)
 
         pos_roi_per_image = np.round(self.n_sample * self.pos_ratio)
@@ -130,167 +140,13 @@ class ProposalTargetCreator(object):
                        ) / np.array(loc_normalize_std, np.float32))
 
         return sample_roi, gt_roi_loc, gt_roi_label
+'''
 
 
-class AnchorTargetCreator(object):
-    """Assign the ground truth bounding boxes to anchors.
 
-    Assigns the ground truth bounding boxes to anchors for training Region
-    Proposal Networks introduced in Faster R-CNN [#]_.
-
-    Offsets and scales to match anchors to the ground truth are
-    calculated using the encoding scheme of
-    :func:`model.utils.bbox_tools.bbox2loc`.
-
-    .. [#] Shaoqing Ren, Kaiming He, Ross Girshick, Jian Sun. \
-    Faster R-CNN: Towards Real-Time Object Detection with \
-    Region Proposal Networks. NIPS 2015.
-
-    Args:
-        n_sample (int): The number of regions to produce.
-        pos_iou_thresh (float): Anchors with IoU above this
-            threshold will be assigned as positive.
-        neg_iou_thresh (float): Anchors with IoU below this
-            threshold will be assigned as negative.
-        pos_ratio (float): Ratio of positive regions in the
-            sampled regions.
-
-    """
-
-    def __init__(self,
-                 n_sample=256,
-                 pos_iou_thresh=0.7, neg_iou_thresh=0.3,
-                 pos_ratio=0.5):
-        self.n_sample = n_sample
-        self.pos_iou_thresh = pos_iou_thresh
-        self.neg_iou_thresh = neg_iou_thresh
-        self.pos_ratio = pos_ratio
-
-    def __call__(self, bbox, anchor, img_size):
-        """Assign ground truth supervision to sampled subset of anchors.
-
-        Types of input arrays and output arrays are same.
-
-        Here are notations.
-
-        * :math:`S` is the number of anchors.
-        * :math:`R` is the number of bounding boxes.
-
-        Args:
-            bbox (array): Coordinates of bounding boxes. Its shape is
-                :math:`(R, 4)`.
-            anchor (array): Coordinates of anchors. Its shape is
-                :math:`(S, 4)`.
-            img_size (tuple of ints): A tuple :obj:`H, W`, which
-                is a tuple of height and width of an image.
-
-        Returns:
-            (array, array):
-
-            #NOTE: it's scale not only  offset
-            * **loc**: Offsets and scales to match the anchors to \
-                the ground truth bounding boxes. Its shape is :math:`(S, 4)`.
-            * **label**: Labels of anchors with values \
-                :obj:`(1=positive, 0=negative, -1=ignore)`. Its shape \
-                is :math:`(S,)`.
-
-        """
-
-        img_H, img_W = img_size
-
-        n_anchor = len(anchor)
-        inside_index = _get_inside_index(anchor, img_H, img_W)
-        anchor = anchor[inside_index]
-        argmax_ious, label = self._create_label(
-            inside_index, anchor, bbox)
-
-        # compute bounding box regression targets
-        loc = bbox2loc(anchor, bbox[argmax_ious])
-
-        # map up to original set of anchors
-        label = _unmap(label, n_anchor, inside_index, fill=-1)
-        loc = _unmap(loc, n_anchor, inside_index, fill=0)
-
-        return loc, label
-
-    def _create_label(self, inside_index, anchor, bbox):
-        # label: 1 is positive, 0 is negative, -1 is dont care
-        label = np.empty((len(inside_index),), dtype=np.int32)
-        label.fill(-1)
-
-        argmax_ious, max_ious, gt_argmax_ious = \
-            self._calc_ious(anchor, bbox, inside_index)
-
-        # assign negative labels first so that positive labels can clobber them
-        label[max_ious < self.neg_iou_thresh] = 0
-
-        # positive label: for each gt, anchor with highest iou
-        label[gt_argmax_ious] = 1
-
-        # positive label: above threshold IOU
-        label[max_ious >= self.pos_iou_thresh] = 1
-
-        # subsample positive labels if we have too many
-        n_pos = int(self.pos_ratio * self.n_sample)
-        pos_index = np.where(label == 1)[0]
-        if len(pos_index) > n_pos:
-            disable_index = np.random.choice(
-                pos_index, size=(len(pos_index) - n_pos), replace=False)
-            label[disable_index] = -1
-
-        # subsample negative labels if we have too many
-        n_neg = self.n_sample - np.sum(label == 1)
-        neg_index = np.where(label == 0)[0]
-        if len(neg_index) > n_neg:
-            disable_index = np.random.choice(
-                neg_index, size=(len(neg_index) - n_neg), replace=False)
-            label[disable_index] = -1
-
-        return argmax_ious, label
-
-    def _calc_ious(self, anchor, bbox, inside_index):
-        # ious between the anchors and the gt boxes
-        ious = bbox_iou(anchor, bbox)
-        argmax_ious = ious.argmax(axis=1)
-        max_ious = ious[np.arange(len(inside_index)), argmax_ious]
-        gt_argmax_ious = ious.argmax(axis=0)
-        gt_max_ious = ious[gt_argmax_ious, np.arange(ious.shape[1])]
-        gt_argmax_ious = np.where(ious == gt_max_ious)[0]
-
-        return argmax_ious, max_ious, gt_argmax_ious
-
-
-def _unmap(data, count, index, fill=0):
-    # Unmap a subset of item (data) back to the original set of items (of
-    # size count)
-
-    if len(data.shape) == 1:
-        ret = np.empty((count,), dtype=data.dtype)
-        ret.fill(fill)
-        ret[index] = data
-    else:
-        ret = np.empty((count,) + data.shape[1:], dtype=data.dtype)
-        ret.fill(fill)
-        ret[index, :] = data
-    return ret
-
-
-def _get_inside_index(anchor, H, W):
-    # Calc indicies of anchors which are located completely inside of the image
-    # whose size is speficied.
-    index_inside = np.where(
-        (anchor[:, 0] >= 0) &
-        (anchor[:, 1] >= 0) &
-        (anchor[:, 2] <= H) &
-        (anchor[:, 3] <= W)
-    )[0]
-    return index_inside
 
 
 class ProposalCreator:
-    # unNOTE: I'll make it undifferential
-    # unTODO: make sure it's ok
-    # It's ok
     """Proposal regions are generated by calling this object.
 
     The :meth:`__call__` of this object outputs object detection proposals by
@@ -336,7 +192,7 @@ class ProposalCreator:
                  n_test_post_nms=300,
                  min_size=16
                  ):
-        self.parent_model = parent_model
+        self.parent_model = parent_model # NOTE: check this how it looks
         self.nms_thresh = nms_thresh
         self.n_train_pre_nms = n_train_pre_nms
         self.n_train_post_nms = n_train_post_nms
@@ -392,11 +248,22 @@ class ProposalCreator:
 
         # Convert anchors into proposal via bbox transformations.
         # roi = loc2bbox(anchor, loc)
+        # anchor: all the anchor bases at all pixels
+        # loc: all the location infos at all pixels
         roi = loc2bbox(anchor, loc)
+        # Now roi has all the roi candidates!
+        
 
-        # Clip predicted boxes to image.
+        # np.clip() clips predicted boxes to image.
+        # this truncates all the predicted boxes that exceeds the
+        # boundary of the original image.
+        #
+        # slice(start, end, step)
+
+        # clip y coordinates 
         roi[:, slice(0, 4, 2)] = np.clip(
             roi[:, slice(0, 4, 2)], 0, img_size[0])
+        # clip x coordinates
         roi[:, slice(1, 4, 2)] = np.clip(
             roi[:, slice(1, 4, 2)], 0, img_size[1])
 
@@ -410,22 +277,22 @@ class ProposalCreator:
 
         # Sort all (proposal, score) pairs by score from highest to lowest.
         # Take top pre_nms_topN (e.g. 6000).
+        # ravel() returns a contiguous array.
         order = score.ravel().argsort()[::-1]
         if n_pre_nms > 0:
             order = order[:n_pre_nms]
         roi = roi[order, :]
-        score = score[order]
+        
 
         # Apply nms (e.g. threshold = 0.7).
         # Take after_nms_topN (e.g. 300).
 
         # unNOTE: somthing is wrong here!
         # TODO: remove cuda.to_gpu
-        keep = nms(
-            torch.from_numpy(roi).cuda(),
-            torch.from_numpy(score).cuda(),
-            self.nms_thresh)
-        if n_post_nms > 0:
+        keep = non_maximum_suppression(
+            np.ascontiguousarray(np.asarray(roi)),
+            thresh=self.nms_thresh)
+        if n_post_nms > 0 and keep.shape[0] > n_post_nms:
             keep = keep[:n_post_nms]
-        roi = roi[keep.cpu().numpy()]
+        roi = roi[keep]
         return roi
