@@ -10,6 +10,8 @@ img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
 img = torch.from_numpy(img)[None]
 
 ## load pretrained model
+## this pretrained model is available at:
+## https://github.com/playerkk/face-py-faster-rcnn
 filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/converted.h5"
 state_dict = h5py.File(filename, 'r')
 
