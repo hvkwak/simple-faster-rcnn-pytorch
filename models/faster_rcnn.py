@@ -1,13 +1,16 @@
 import os
 import sys
 sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/FASTER_RCNN/")
-import numpy as np
-import torch
-from torch import nn
-from data.dataset import preprocess
-from models.utils.nms import non_maximum_suppression
-from utils import array_tool as at
 
+import torch
+import numpy as np
+
+from torch import nn
+from torch.nn import functional as F
+from models.utils.nms import non_maximum_suppression
+from models.utils.bbox_tools import loc2bbox
+from utils import array_tool as at
+from data.dataset import preprocess
 
 class FasterRCNN(nn.Module):
     """Base class for Faster R-CNN.
@@ -175,8 +178,8 @@ class FasterRCNN(nn.Module):
             score.append(prob_l[keep])
         return bbox, label, score
 
-    # @nograd
-    def predict(self, imgs,sizes=None,visualize=False):
+    @torch.no_grad()
+    def predict(self, imgs, sizes=None, visualize=False):
         """Detect objects from images.
 
         This method predicts objects for each image.
@@ -222,19 +225,29 @@ class FasterRCNN(nn.Module):
         labels = list()
         scores = list()
         for img, size in zip(prepared_imgs, sizes):
+            # change it to tensor
+            # [None] addes up one more dimension
             img = at.totensor(img[None]).float()
+
+            # scale factor
             scale = img.shape[3] / size[1]
+
+            # fast forward the image
             roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+
             # We are assuming that batch size is 1.
             roi_score = roi_scores.data
             roi_cls_loc = roi_cls_loc.data
+
+            # change rois to tensor
             roi = at.totensor(rois) / scale
 
+            # check the codes below.
             # Convert predictions to bounding boxes in image coordinates.
             # Bounding boxes are scaled to the scale of the input images.
-            mean = t.Tensor(self.loc_normalize_mean).cuda(). \
+            mean = torch.Tensor(self.loc_normalize_mean).cuda(). \
                 repeat(self.n_class)[None]
-            std = t.Tensor(self.loc_normalize_std).cuda(). \
+            std = torch.Tensor(self.loc_normalize_std).cuda(). \
                 repeat(self.n_class)[None]
 
             roi_cls_loc = (roi_cls_loc * std + mean)
@@ -243,22 +256,26 @@ class FasterRCNN(nn.Module):
             cls_bbox = loc2bbox(at.tonumpy(roi).reshape((-1, 4)),
                                 at.tonumpy(roi_cls_loc).reshape((-1, 4)))
             cls_bbox = at.totensor(cls_bbox)
+            # change the form (N, 4) 
             cls_bbox = cls_bbox.view(-1, self.n_class * 4)
-            # clip bounding box
+
+            # clamp in range of [0, size[0]]
             cls_bbox[:, 0::2] = (cls_bbox[:, 0::2]).clamp(min=0, max=size[0])
             cls_bbox[:, 1::2] = (cls_bbox[:, 1::2]).clamp(min=0, max=size[1])
 
             prob = at.tonumpy(F.softmax(at.totensor(roi_score), dim=1))
 
+            # change tensors to numpy
             raw_cls_bbox = at.tonumpy(cls_bbox)
             raw_prob = at.tonumpy(prob)
 
+            # non maximum suppression
             bbox, label, score = self._suppress(raw_cls_bbox, raw_prob)
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
 
         self.use_preset('evaluate')
-        self.train()
+        self.train() # change it back to train mode.
         return bboxes, labels, scores
         

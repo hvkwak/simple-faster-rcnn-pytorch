@@ -1,8 +1,8 @@
 import numpy as np
 #import numpy as xp
+# import six # keep it. but unnecessary.
+# from six import __init__
 
-import six # keep it. but unnecessary.
-from six import __init__
 
 
 def generate_anchor_base(base_size=16, ratios=[0.5, 1, 2],
@@ -50,8 +50,8 @@ def generate_anchor_base(base_size=16, ratios=[0.5, 1, 2],
                            dtype=np.float32)
 
     # six: Python 2 and 3 compatibility library
-    for i in six.moves.range(len(ratios)):
-        for j in six.moves.range(len(anchor_scales)):
+    for i in range(len(ratios)):
+        for j in range(len(anchor_scales)):
             # np.sqrt(ratios[i]) makes eventuell h = w/ratios[i]
             h = base_size * anchor_scales[j] * np.sqrt(ratios[i])
             w = base_size * anchor_scales[j] * np.sqrt(1. / ratios[i])
@@ -161,9 +161,6 @@ def loc2bbox(src_bbox, loc):
     return dst_bbox
 
 
-
-
-'''
 def bbox_iou(bbox_a, bbox_b):
     """Calculate the Intersection of Unions (IoUs) between bounding boxes.
 
@@ -203,4 +200,3 @@ def bbox_iou(bbox_a, bbox_b):
     area_a = xp.prod(bbox_a[:, 2:] - bbox_a[:, :2], axis=1)
     area_b = xp.prod(bbox_b[:, 2:] - bbox_b[:, :2], axis=1)
     return area_i / (area_a[:, None] + area_b - area_i)
-'''

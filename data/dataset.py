@@ -1,8 +1,12 @@
+import os
+import sys
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
+
 import torch
 from skimage import transform as sktsf
 from torchvision import transforms as tvtsf
 import numpy as np
-from utils.config import opt
+from models.utils.config import opt
 
 def preprocess(img, min_size=600, max_size=1000):
     """Preprocess an image for feature extraction.
