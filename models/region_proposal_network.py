@@ -7,6 +7,7 @@ from torch.nn import functional as F
 import torch as t
 from torch import nn
 from models.utils.bbox_tools import generate_anchor_base, bbox_iou
+from models.utils.creator_tool import ProposalCreator
 
 class RegionProposalNetwork(nn.Module):
     """Region Proposal Network introduced in Faster R-CNN.
