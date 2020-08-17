@@ -1,19 +1,42 @@
 import os
+import sys
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/FASTER_RCNN/")
+import numpy as np
 import torch
 import h5py
 from utils.util import read_image
 from models.faster_rcnn_vgg16 import FasterRCNNVGG16
-
+from trainer import FasterRCNNTrainer
 
 ## load image
 img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
 img = torch.from_numpy(img)[None]
+
+## model
+faster_rcnn = FasterRCNNVGG16()
+trainer = FasterRCNNTrainer(faster_rcnn)
 
 ## load pretrained model
 ## this pretrained model is available at:
 ## https://github.com/playerkk/face-py-faster-rcnn
 filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/converted.h5"
 state_dict = h5py.File(filename, 'r')
+
+print("------See what's inside in faster_rcnn------")
+for i, j in faster_rcnn.named_parameters(): print(i)
+print("---------------------------------------------")
+
+print("-----See what's inside in pretrained model--------")
+for i, j in state_dict.items(): print(i)
+print("---------------------------------------------")
+
+'''
+for k, v in state_dict.items(): 
+    for l, p in faster_rcnn.named_parameters():
+        if k in l
+'''
+print({l : torch.from_numpy(np.array(v)).view_as(p) for k, v in state_dict.items() for l, p in faster_rcnn.named_parameters() if k in l})
+
 
 
 
