@@ -1,7 +1,7 @@
 # A Simple and Fast Implementation of Faster R-CNN
 
 ## Note
-This is a forked repository from https://github.com/chenyuntc/simple-faster-rcnn-pytorch/ which is enabled to use Faster R-CNN detection, classification architecture without Cython and other packages.
+This is a forked repository from https://github.com/chenyuntc/simple-faster-rcnn-pytorch/ which enables Faster R-CNN detection and classification without Cython and other packages.
 
 ## 1. Introduction
 
