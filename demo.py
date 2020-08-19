@@ -7,6 +7,7 @@ import h5py
 from utils.util import read_image
 from models.faster_rcnn_vgg16 import FasterRCNNVGG16
 from trainer import FasterRCNNTrainer
+from utils.array_tool import rename
 
 ## load image
 img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
@@ -14,7 +15,7 @@ img = torch.from_numpy(img)[None]
 
 ## model
 faster_rcnn = FasterRCNNVGG16()
-trainer = FasterRCNNTrainer(faster_rcnn)
+# trainer = FasterRCNNTrainer(faster_rcnn)
 
 ## load pretrained model
 ## this pretrained model is available at:
@@ -22,38 +23,31 @@ trainer = FasterRCNNTrainer(faster_rcnn)
 filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/converted.h5"
 state_dict = h5py.File(filename, 'r')
 
-print("------See what's inside in faster_rcnn------")
-for i, j in faster_rcnn.named_parameters(): print(i)
-print("---------------------------------------------")
+state_dict = {k: v for k, v in state_dict.items()}
+state_dict = rename(faster_rcnn.named_parameters(), state_dict)
 
-print("-----See what's inside in pretrained model--------")
-for i, j in state_dict.items(): print(i)
-print("---------------------------------------------")
+## load weights
+faster_rcnn.load_state_dict({l : torch.from_numpy(np.array(v)).view_as(p) for k, v in state_dict.items() for l, p in faster_rcnn.named_parameters() if k in l})
+
+## predict
+print(faster_rcnn.predict(img, visualize = True))
+
+
+
+
+
+
+
+
+
+
+
+
+
+''' use this later:
 
 '''
-for k, v in state_dict.items(): 
-    for l, p in faster_rcnn.named_parameters():
-        if k in l
-'''
-print({l : torch.from_numpy(np.array(v)).view_as(p) for k, v in state_dict.items() for l, p in faster_rcnn.named_parameters() if k in l})
 
-
-
-
-
-
-
-
-
-
-
-state_dict.items()
-for k, i in state_dict.items():
-    print(k, i)
-
-''' use this later:    
-model.load_state_dict({l : torch.from_numpy(numpy.array(v)).view_as(p) for k, v in state_dict.items() for l, p in model.named_parameters() if k in l})
-'''
 '''
 path = '/home/hyobin/Documents/FASTRCNN_demo/chainer_best_model_converted_to_pytorch_0.7053.pth'
 pretrained_dict = torch.load(path)

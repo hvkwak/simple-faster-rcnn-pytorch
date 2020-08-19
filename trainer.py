@@ -45,7 +45,7 @@ class FasterRCNNTrainer(nn.Module):
         # average loss
         self.meters = {k: AverageValueMeter() for k in LossTuple._fields} 
         '''
-
+    '''
     def load(self, path, load_optimizer=True, parse_opt=False, ):
         state_dict = t.load(path)
         if 'model' in state_dict:
@@ -58,3 +58,4 @@ class FasterRCNNTrainer(nn.Module):
         if 'optimizer' in state_dict and load_optimizer:
             self.optimizer.load_state_dict(state_dict['optimizer'])
         return self
+    '''
