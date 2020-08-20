@@ -182,7 +182,8 @@ class RegionProposalNetwork(nn.Module):
             # append them, this can slow down the speed.
             rois.append(roi)
             roi_indices.append(batch_index)
-        # all the rois concatenate
+        # all the rois concatenate:
+        # (N, 4)
         rois = np.concatenate(rois, axis=0)
 
         # all the batch indexes concatenate

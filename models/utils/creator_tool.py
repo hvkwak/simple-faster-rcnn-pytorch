@@ -293,8 +293,9 @@ class ProposalCreator:
         # TODO: remove cuda.to_gpu
         keep = non_maximum_suppression(
             np.ascontiguousarray(np.asarray(roi)),
-            thresh=self.nms_thresh)
-        if n_post_nms > 0 and keep.shape[0] > n_post_nms:
-            keep = keep[:n_post_nms]
+            threshold=self.nms_thresh)
+        # remember that keep is tuple: (indices, indices_num)
+        if n_post_nms > 0 and keep[1] > n_post_nms:
+            keep = keep[0][:n_post_nms]
         roi = roi[keep]
         return roi

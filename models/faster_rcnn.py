@@ -9,7 +9,7 @@ from torch import nn
 from torch.nn import functional as F
 from models.utils.nms import non_maximum_suppression
 from models.utils.bbox_tools import loc2bbox
-from utils import array_tool as at
+from utils.array_tool import tonumpy, totensor
 from data.dataset import preprocess
 
 class FasterRCNN(nn.Module):
@@ -214,7 +214,7 @@ class FasterRCNN(nn.Module):
             sizes = list()
             for img in imgs:
                 size = img.shape[1:]
-                img = preprocess(at.tonumpy(img))
+                img = preprocess(tonumpy(img))
                 prepared_imgs.append(img)
                 sizes.append(size)
         else:
@@ -227,7 +227,7 @@ class FasterRCNN(nn.Module):
         for img, size in zip(prepared_imgs, sizes):
             # change it to tensor
             # [None] addes up one more dimension
-            img = at.totensor(img[None]).float()
+            img = totensor(img[None]).float()
 
             # scale factor
             scale = img.shape[3] / size[1]
@@ -240,7 +240,7 @@ class FasterRCNN(nn.Module):
             roi_cls_loc = roi_cls_loc.data
 
             # change rois to tensor
-            roi = at.totensor(rois) / scale
+            roi = totensor(rois) / scale
 
             # check the codes below.
             # Convert predictions to bounding boxes in image coordinates.
@@ -253,9 +253,9 @@ class FasterRCNN(nn.Module):
             roi_cls_loc = (roi_cls_loc * std + mean)
             roi_cls_loc = roi_cls_loc.view(-1, self.n_class, 4)
             roi = roi.view(-1, 1, 4).expand_as(roi_cls_loc)
-            cls_bbox = loc2bbox(at.tonumpy(roi).reshape((-1, 4)),
-                                at.tonumpy(roi_cls_loc).reshape((-1, 4)))
-            cls_bbox = at.totensor(cls_bbox)
+            cls_bbox = loc2bbox(tonumpy(roi).reshape((-1, 4)),
+                                tonumpy(roi_cls_loc).reshape((-1, 4)))
+            cls_bbox = totensor(cls_bbox)
             # change the form (N, 4) 
             cls_bbox = cls_bbox.view(-1, self.n_class * 4)
 
@@ -263,11 +263,11 @@ class FasterRCNN(nn.Module):
             cls_bbox[:, 0::2] = (cls_bbox[:, 0::2]).clamp(min=0, max=size[0])
             cls_bbox[:, 1::2] = (cls_bbox[:, 1::2]).clamp(min=0, max=size[1])
 
-            prob = at.tonumpy(F.softmax(at.totensor(roi_score), dim=1))
+            prob = tonumpy(F.softmax(totensor(roi_score), dim=1))
 
             # change tensors to numpy
-            raw_cls_bbox = at.tonumpy(cls_bbox)
-            raw_prob = at.tonumpy(prob)
+            raw_cls_bbox = tonumpy(cls_bbox)
+            raw_prob = tonumpy(prob)
 
             # non maximum suppression
             bbox, label, score = self._suppress(raw_cls_bbox, raw_prob)

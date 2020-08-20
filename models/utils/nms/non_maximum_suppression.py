@@ -15,12 +15,15 @@ def non_maximum_suppression(bboxes, threshold=0.7):
                 to lowest.
         threshold: IoU threshold
     '''
+    # change bboxes from np.ndarray to tensor:
+    bboxes = torch.from_numpy(bboxes)
+
     # return zeros if it is empty
     n_bboxes = bboxes.shape[0]
     idx = torch.arange(n_bboxes)
     keep = torch.zeros(n_bboxes).long()
 
-    if bboxes.numel() == 0:
+    if not bboxes.shape[0] > 0:
         return keep
     
     y1 = bboxes[:, 0]
@@ -39,7 +42,7 @@ def non_maximum_suppression(bboxes, threshold=0.7):
 
     count = 0
     while idx.numel() > 0:
-        i = idx[1] # index of current largest val
+        i = idx[0] # index of current largest val
         keep[count] = i
         count = count+1
 
@@ -61,11 +64,14 @@ def non_maximum_suppression(bboxes, threshold=0.7):
         xx2 = torch.clamp(xx2, max=x2[i])
         yy2 = torch.clamp(yy2, max=y2[i])
 
+        # we take care of just dim using resize_as_()
         w.resize_as_(xx2)
         h.resize_as_(yy2)
+        # then compute w and h:
         w = xx2 - xx1
         h = yy2 - yy1
-        # check sizes of xx1 and xx2.. after each iteration
+        
+        # make sure that there are no values smaller than 0.
         w = torch.clamp(w, min=0.0)
         h = torch.clamp(h, min=0.0)
         inter = w*h
