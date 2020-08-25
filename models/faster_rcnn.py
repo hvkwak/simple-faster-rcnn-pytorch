@@ -165,17 +165,21 @@ class FasterRCNN(nn.Module):
 
             # check if they exceed the threshold 
             # take those who exceeded
-            mask = prob_l > self.score_thresh
-            cls_bbox_l = cls_bbox_l[mask]
+            mask = prob_l > np.mean(prob_l)
+            # mask = prob_l.argsort()[::-1][:30] # take top 10
+            cls_bbox_l = cls_bbox_l[mask, :]
             prob_l = prob_l[mask]
 
             # indexes to keep
+            '''
             keep = non_maximum_suppression(np.array(cls_bbox_l), self.nms_thresh, prob_l)
             keep = np.asnumpy(keep)
-            bbox.append(cls_bbox_l[keep])
+            '''
+            
+            bbox.append(cls_bbox_l)
             # The labels are in [0, self.n_class - 2].
-            label.append((l - 1) * np.ones((len(keep),)))
-            score.append(prob_l[keep])
+            label.append((l - 1) * np.ones((len(mask),)))
+            score.append(prob_l)
         return bbox, label, score
 
     @torch.no_grad()
@@ -233,7 +237,13 @@ class FasterRCNN(nn.Module):
             scale = img.shape[3] / size[1]
 
             # fast forward the image
+            # img   -> (extractor+rpn+head) -> roi_cls_loc, roi_scores, rois
             roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+
+            # NOTE:
+            # rois.shape =  (300, 4)
+            # where 4 corresponds to (y1, x1, y2, x2)
+            # x in [0, 600], y in [0, 800]
 
             # We are assuming that batch size is 1.
             roi_score = roi_scores.data
@@ -245,9 +255,9 @@ class FasterRCNN(nn.Module):
             # check the codes below.
             # Convert predictions to bounding boxes in image coordinates.
             # Bounding boxes are scaled to the scale of the input images.
-            mean = torch.Tensor(self.loc_normalize_mean).cuda(). \
+            mean = torch.Tensor(self.loc_normalize_mean). \
                 repeat(self.n_class)[None]
-            std = torch.Tensor(self.loc_normalize_std).cuda(). \
+            std = torch.Tensor(self.loc_normalize_std). \
                 repeat(self.n_class)[None]
 
             roi_cls_loc = (roi_cls_loc * std + mean)

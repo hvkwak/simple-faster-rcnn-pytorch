@@ -284,6 +284,7 @@ class ProposalCreator:
         if n_pre_nms > 0:
             order = order[:n_pre_nms]
         roi = roi[order, :]
+        # score = score[order]
         
 
         # Apply nms (e.g. threshold = 0.7).
@@ -297,5 +298,5 @@ class ProposalCreator:
         # remember that keep is tuple: (indices, indices_num)
         if n_post_nms > 0 and keep[1] > n_post_nms:
             keep = keep[0][:n_post_nms]
-        roi = roi[keep]
+        roi = roi[keep, :]
         return roi

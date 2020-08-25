@@ -31,7 +31,7 @@ def non_maximum_suppression(bboxes, threshold=0.7):
     y2 = bboxes[:, 2]
     x2 = bboxes[:, 3]
 
-    area = torch.mul(x2 - x1, y2 - y1)
+    area = torch.mul(x2 - x1, y2 - y1) # IoU / area
 
     yy1 = bboxes.new()
     xx1 = bboxes.new()

@@ -1,7 +1,8 @@
 from models.utils.config import opt
 from models.faster_rcnn import FasterRCNN
 from models.region_proposal_network import RegionProposalNetwork
-from models.roi_module import RoIPooling2D
+# from models.roi_module import RoIPooling2D
+from models.roi_module import RoI
 import torch
 from torchvision.models import vgg16
 from torch import nn
@@ -119,7 +120,8 @@ class VGG16RoIHead(nn.Module):
         self.spatial_scale = spatial_scale
 
         # check how RoIPooling works and implement it.
-        self.roi = RoIPooling2D(self.roi_size, self.roi_size)
+        self.roi = RoI
+        # self.roi = RoIPooling2D(self.roi_size, self.roi_size)
 
     def forward(self, x, rois, roi_indices):
         """Forward the chain.
@@ -141,13 +143,21 @@ class VGG16RoIHead(nn.Module):
         # in case roi_indices is  ndarray
         roi_indices = at.totensor(roi_indices).float()
         rois = at.totensor(rois).float()
+
+        #####################################################################
+        # X, Y changes???                                                   #
+        #####################################################################
+        # combine rois and roi_indices
         indices_and_rois = torch.cat([roi_indices[:, None], rois], dim=1)
         # NOTE: important: yx->xy
+        # indices_and_rois = (index, (x1, y1, x2, y2))
+        # where x in [0, 600], y in [0, 800]
         xy_indices_and_rois = indices_and_rois[:, [0, 2, 1, 4, 3]]
         indices_and_rois =  xy_indices_and_rois.contiguous()
-
+        #####################################################################
+        
         # roi pooling:
-        pool = self.roi(x, indices_and_rois)
+        pool = self.roi.apply(x, indices_and_rois)
         pool = pool.view(pool.size(0), -1) # flatten
         fc7 = self.classifier(pool)
         roi_cls_locs = self.cls_loc(fc7)

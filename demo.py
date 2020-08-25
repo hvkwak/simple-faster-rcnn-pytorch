@@ -10,8 +10,11 @@ from trainer import FasterRCNNTrainer
 from utils.array_tool import rename
 
 ## load image
-img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
+img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo2.png')
 img = torch.from_numpy(img)[None]
+
+# y1, x1, y2, x2 = [105.145935, 244.01637 , 375.      , 500.      ]
+
 
 ## model
 faster_rcnn = FasterRCNNVGG16()
@@ -30,7 +33,26 @@ state_dict = rename(faster_rcnn.named_parameters(), state_dict)
 faster_rcnn.load_state_dict({l : torch.from_numpy(np.array(v)).view_as(p) for k, v in state_dict.items() for l, p in faster_rcnn.named_parameters() if k in l})
 
 ## predict
-print(faster_rcnn.predict(img, visualize = True))
+bboxes, labels, scores = faster_rcnn.predict(img, visualize = True)
+
+
+# visualize
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image
+
+img1 = Image.open(os.path.dirname(os.path.abspath(__file__))+'/demo2.png')
+# img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
+fig, ax = plt.subplots(1)
+ax.imshow(img1)
+for i in range(bboxes[0][0].shape[0]):
+    y1, x1, y2, x2 = bboxes[0][0][i, :]
+    h = y2 - y1
+    w = x2 - x1
+    rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
+    ax.add_patch(rect)
+
+plt.show()
 
 
 
