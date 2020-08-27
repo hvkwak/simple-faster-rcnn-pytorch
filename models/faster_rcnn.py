@@ -119,7 +119,10 @@ class FasterRCNN(nn.Module):
         """
         img_size = x.shape[2:]
         h = self.extractor(x)
-        rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(h, img_size, scale)
+
+        # rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(h, img_size, scale)
+        # rpn_locs, rpn_scores, anchors are obsolete
+        _, _, rois, roi_indices, _ = self.rpn(h, img_size, scale)
         roi_cls_locs, roi_scores = self.head(h, rois, roi_indices)
         return roi_cls_locs, roi_scores, rois, roi_indices
 
@@ -165,21 +168,26 @@ class FasterRCNN(nn.Module):
 
             # check if they exceed the threshold 
             # take those who exceeded
-            mask = prob_l > np.mean(prob_l)
-            # mask = prob_l.argsort()[::-1][:30] # take top 10
+            # mask = prob_l > 0.7
+            mask = prob_l.argsort()[::-1][:70] # take top 30%
             cls_bbox_l = cls_bbox_l[mask, :]
             prob_l = prob_l[mask]
 
             # indexes to keep
-            '''
-            keep = non_maximum_suppression(np.array(cls_bbox_l), self.nms_thresh, prob_l)
-            keep = np.asnumpy(keep)
-            '''
+            keep = non_maximum_suppression(np.array(cls_bbox_l), 0.1)
+            print(keep[1], " out of ", 70, " still there")
+            # keep = non_maximum_suppression(np.array(cls_bbox_l), self.nms_thresh)
+            try:
+                keep = keep[0][:np.where(keep[0][1:] == 0)[0].min()]
+                keep = keep.numpy()
+            except:
+                keep = keep[0]
             
-            bbox.append(cls_bbox_l)
+            
+            bbox.append(cls_bbox_l[keep])
             # The labels are in [0, self.n_class - 2].
             label.append((l - 1) * np.ones((len(mask),)))
-            score.append(prob_l)
+            score.append(prob_l[keep])
         return bbox, label, score
 
     @torch.no_grad()

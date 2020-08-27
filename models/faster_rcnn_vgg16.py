@@ -7,6 +7,8 @@ import torch
 from torchvision.models import vgg16
 from torch import nn
 from utils import array_tool as at
+import torch.nn.functional as F
+import torchvision.ops.roi_pool as roi_pool
 
 def decom_vgg16():
     # loads vgg16 extractor(layers before FC) and 
@@ -74,7 +76,7 @@ class FasterRCNNVGG16(FasterRCNN):
         rpn = RegionProposalNetwork(in_channels=512, 
                                     mid_channels=512, 
                                     ratios=[0.5, 1, 2], 
-                                    anchor_scales=[8, 16, 32], 
+                                    anchor_scales=[8 ,16, 32], 
                                     feat_stride=16, 
                                     proposal_creator_params=dict())
         head = VGG16RoIHead(
@@ -120,7 +122,8 @@ class VGG16RoIHead(nn.Module):
         self.spatial_scale = spatial_scale
 
         # check how RoIPooling works and implement it.
-        self.roi = RoI
+        # self.roi = RoI
+        self.roi = roi_pool
         # self.roi = RoIPooling2D(self.roi_size, self.roi_size)
 
     def forward(self, x, rois, roi_indices):
@@ -152,12 +155,15 @@ class VGG16RoIHead(nn.Module):
         # NOTE: important: yx->xy
         # indices_and_rois = (index, (x1, y1, x2, y2))
         # where x in [0, 600], y in [0, 800]
-        xy_indices_and_rois = indices_and_rois[:, [0, 2, 1, 4, 3]]
-        indices_and_rois =  xy_indices_and_rois.contiguous()
+        # xy_indices_and_rois = indices_and_rois[:, [0, 2, 1, 4, 3]]
+        # indices_and_rois =  xy_indices_and_rois.contiguous()
         #####################################################################
         
         # roi pooling:
-        pool = self.roi.apply(x, indices_and_rois)
+        # pool = self.roi.apply(x, indices_and_rois)
+        pool = self.roi(x, indices_and_rois[:, [0, 2, 1, 4, 3]], (7, 7), 1/16)
+        # pool = self.roi(x, indices_and_rois, (7, 7), 1/16)
+
         pool = pool.view(pool.size(0), -1) # flatten
         fc7 = self.classifier(pool)
         roi_cls_locs = self.cls_loc(fc7)

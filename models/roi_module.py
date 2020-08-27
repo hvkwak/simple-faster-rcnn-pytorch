@@ -27,10 +27,10 @@ class RoI(Function):
 
         # roi pooling: 7 x 7
         for i in range(N):
-            roi = index_bbox[i, 1:5] # roi.shape: (x1, y1, x2, y2)
-            w = roi[2] - roi[0]
-            h = roi[3] - roi[1]
-            x, y = roi[0:2] # take x1, y1
+            roi = index_bbox[i, 1:5] # roi.shape: (y1, x1, y2, x2)
+            h = roi[2] - roi[0]
+            w = roi[3] - roi[1]
+            y, x = roi[0:2] # take x1, y1
             # x in [0, 600], y in [0, 800]
 
             roi_x = (x//16).int()

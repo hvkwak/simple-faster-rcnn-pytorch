@@ -192,7 +192,7 @@ class ProposalCreator:
                  n_train_pre_nms=12000,
                  n_train_post_nms=2000,
                  n_test_pre_nms=6000,
-                 n_test_post_nms=300,
+                 n_test_post_nms=100,
                  min_size=16
                  ):
         self.parent_model = parent_model # NOTE: check this how it looks
@@ -294,7 +294,7 @@ class ProposalCreator:
         # TODO: remove cuda.to_gpu
         keep = non_maximum_suppression(
             np.ascontiguousarray(np.asarray(roi)),
-            threshold=self.nms_thresh)
+            threshold=0.7)
         # remember that keep is tuple: (indices, indices_num)
         if n_post_nms > 0 and keep[1] > n_post_nms:
             keep = keep[0][:n_post_nms]

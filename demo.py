@@ -10,7 +10,8 @@ from trainer import FasterRCNNTrainer
 from utils.array_tool import rename
 
 ## load image
-img = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo2.png')
+image_name = "/demo1.png"
+img = read_image(os.path.dirname(os.path.abspath(__file__))+image_name)
 img = torch.from_numpy(img)[None]
 
 # y1, x1, y2, x2 = [105.145935, 244.01637 , 375.      , 500.      ]
@@ -41,7 +42,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from PIL import Image
 
-img1 = Image.open(os.path.dirname(os.path.abspath(__file__))+'/demo2.png')
+img1 = Image.open(os.path.dirname(os.path.abspath(__file__))+image_name)
 # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
 fig, ax = plt.subplots(1)
 ax.imshow(img1)

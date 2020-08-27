@@ -4,6 +4,7 @@ import torch
 
 
 def non_maximum_suppression(bboxes, threshold=0.7):
+    print("threshold: ", threshold)
     '''
     Non Maximum Suppresion courtesy of:
     https://gist.github.com/mkocabas/a2f565b27331af0da740c11c78699185#file-nms_pytorch-py-L34
