@@ -56,7 +56,7 @@ def generate_anchor_base(base_size=16, ratios=[0.5, 1, 2],
             h = base_size * anchor_scales[j] * np.sqrt(ratios[i])
             w = base_size * anchor_scales[j] * np.sqrt(1. / ratios[i])
 
-            # x1, y1, y2, x2
+            # y1, x1, y2, x2
             index = i * len(anchor_scales) + j
             anchor_base[index, 0] = py - h / 2.
             anchor_base[index, 1] = px - w / 2.
@@ -138,6 +138,7 @@ def loc2bbox(src_bbox, loc):
     src_ctr_x = src_bbox[:, 1] + 0.5 * src_width
 
     # a[x::y] means get every yth element starting at position x
+    # these are regression targets from the paper R-CNN!
     dy = loc[:, 0::4]
     dx = loc[:, 1::4]
     dh = loc[:, 2::4]

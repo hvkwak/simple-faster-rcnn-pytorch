@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/FASTER_RCNN/")
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
 import numpy as np
 import torch
 import h5py
@@ -10,7 +10,7 @@ from trainer import FasterRCNNTrainer
 from utils.array_tool import rename
 
 ## load image
-image_name = "/demo1.png"
+image_name = "/demo.jpg"
 img = read_image(os.path.dirname(os.path.abspath(__file__))+image_name)
 img = torch.from_numpy(img)[None]
 
@@ -24,9 +24,16 @@ faster_rcnn = FasterRCNNVGG16()
 ## load pretrained model
 ## this pretrained model is available at:
 ## https://github.com/playerkk/face-py-faster-rcnn
+
+'''
+# try 1
+filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/vgg16_faster_rcnn_iter_80000.caffemodel.pt"
+torch.load(filename)
+'''
+
+# try 2
 filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/converted.h5"
 state_dict = h5py.File(filename, 'r')
-
 state_dict = {k: v for k, v in state_dict.items()}
 state_dict = rename(faster_rcnn.named_parameters(), state_dict)
 

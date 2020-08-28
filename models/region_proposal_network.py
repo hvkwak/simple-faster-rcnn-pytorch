@@ -187,7 +187,7 @@ class RegionProposalNetwork(nn.Module):
         # all the batch indexes concatenate
         roi_indices = np.concatenate(roi_indices, axis=0)
 
-        return rpn_locs, rpn_scores, rois, roi_indices, anchor
+        return rpn_locs, rpn_fg_scores, rois, roi_indices, anchor
         
 
 

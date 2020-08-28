@@ -1,8 +1,9 @@
 import os
 import sys
-sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/FASTER_RCNN/")
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
 
-
+import torchvision
+import torch
 import numpy as np
 from models.utils.bbox_tools import bbox2loc, bbox_iou, loc2bbox
 from models.utils.nms import non_maximum_suppression
@@ -188,11 +189,11 @@ class ProposalCreator:
 
     def __init__(self,
                  parent_model,
-                 nms_thresh=0.7,
+                 nms_thresh=0.5,
                  n_train_pre_nms=12000,
-                 n_train_post_nms=2000,
+                 n_train_post_nms=300,
                  n_test_pre_nms=6000,
-                 n_test_post_nms=100,
+                 n_test_post_nms=300,
                  min_size=16
                  ):
         self.parent_model = parent_model # NOTE: check this how it looks
@@ -284,7 +285,7 @@ class ProposalCreator:
         if n_pre_nms > 0:
             order = order[:n_pre_nms]
         roi = roi[order, :]
-        # score = score[order]
+        score = score[order]
         
 
         # Apply nms (e.g. threshold = 0.7).
@@ -292,9 +293,12 @@ class ProposalCreator:
 
         # unNOTE: somthing is wrong here!
         # TODO: remove cuda.to_gpu
+        keep = torchvision.ops.nms(torch.from_numpy(roi), torch.from_numpy(score), 0.5)
+        '''
         keep = non_maximum_suppression(
             np.ascontiguousarray(np.asarray(roi)),
-            threshold=0.7)
+            threshold=0.5)
+        '''
         # remember that keep is tuple: (indices, indices_num)
         if n_post_nms > 0 and keep[1] > n_post_nms:
             keep = keep[0][:n_post_nms]

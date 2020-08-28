@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/FASTER_RCNN/")
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
 
 import torch
 import numpy as np
@@ -11,6 +11,7 @@ from models.utils.nms import non_maximum_suppression
 from models.utils.bbox_tools import loc2bbox
 from utils.array_tool import tonumpy, totensor
 from data.dataset import preprocess
+from utils.util import read_image
 
 class FasterRCNN(nn.Module):
     """Base class for Faster R-CNN.
@@ -123,6 +124,30 @@ class FasterRCNN(nn.Module):
         # rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(h, img_size, scale)
         # rpn_locs, rpn_scores, anchors are obsolete
         _, _, rois, roi_indices, _ = self.rpn(h, img_size, scale)
+
+        ########################################################################
+        # Visualize RPN results
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as patches
+        from PIL import Image
+        ## load image
+        image_name = "/demo.jpg"
+        img1 = Image.open('/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/'+image_name)
+        # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
+        fig, ax = plt.subplots(1)
+        ax.imshow(img1)
+        for i in range(5):
+            y1, x1, y2, x2 = rois[i, :]
+            y1, x1, y2, x2 = y1/self.scale, x1/self.scale, y2/self.scale, x2/self.scale
+            h1 = y2 - y1
+            w = x2 - x1
+            rect = patches.Rectangle((x1,y1),w,h1,linewidth=1,edgecolor='r',facecolor='none')
+            ax.add_patch(rect)
+
+        plt.show()
+        ###########################################################################
+
+
         roi_cls_locs, roi_scores = self.head(h, rois, roi_indices)
         return roi_cls_locs, roi_scores, rois, roi_indices
 
@@ -169,12 +194,13 @@ class FasterRCNN(nn.Module):
             # check if they exceed the threshold 
             # take those who exceeded
             # mask = prob_l > 0.7
-            mask = prob_l.argsort()[::-1][:70] # take top 30%
+            mask = prob_l.argsort()[::-1][:3] # take top 10
             cls_bbox_l = cls_bbox_l[mask, :]
             prob_l = prob_l[mask]
-
+            
+            '''
             # indexes to keep
-            keep = non_maximum_suppression(np.array(cls_bbox_l), 0.1)
+            keep = non_maximum_suppression(np.array(cls_bbox_l), 0.5)
             print(keep[1], " out of ", 70, " still there")
             # keep = non_maximum_suppression(np.array(cls_bbox_l), self.nms_thresh)
             try:
@@ -188,6 +214,11 @@ class FasterRCNN(nn.Module):
             # The labels are in [0, self.n_class - 2].
             label.append((l - 1) * np.ones((len(mask),)))
             score.append(prob_l[keep])
+            '''
+            bbox.append(cls_bbox_l)
+            score.append(prob_l)
+            label.append((l - 1) * np.ones((len(mask),)))
+
         return bbox, label, score
 
     @torch.no_grad()
@@ -226,7 +257,8 @@ class FasterRCNN(nn.Module):
             sizes = list()
             for img in imgs:
                 size = img.shape[1:]
-                img = preprocess(tonumpy(img))
+                img, scale = preprocess(tonumpy(img))
+                self.scale = scale
                 prepared_imgs.append(img)
                 sizes.append(size)
         else:

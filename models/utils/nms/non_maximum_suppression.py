@@ -3,6 +3,7 @@ import numpy as np
 import torch
 
 
+
 def non_maximum_suppression(bboxes, threshold=0.7):
     print("threshold: ", threshold)
     '''
@@ -83,6 +84,7 @@ def non_maximum_suppression(bboxes, threshold=0.7):
         # keep only elements with an IoU <= overlap
         idx = idx[IoU.le(threshold)]
     return keep, count
+
 
 #try:
 #    from _nms_gpu_post import _nms_gpu_post
