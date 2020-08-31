@@ -10,7 +10,7 @@ from utils.vis_tool import vis_bbox
 from utils import array_tool as at
 
 
-img = read_image('misc/demo.jpg')
+img = read_image('/demo.jpg')
 img = t.from_numpy(img)[None]
 
 faster_rcnn = FasterRCNNVGG16()
