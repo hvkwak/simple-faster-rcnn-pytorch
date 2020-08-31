@@ -1,4 +1,6 @@
+import sys
 import os
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
 import torch as t
 from utils.config import opt
 from model import FasterRCNNVGG16
