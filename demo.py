@@ -1,7 +1,7 @@
 import sys
 import os
 sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
-import torch as t
+import torch
 from utils.config import opt
 from model import FasterRCNNVGG16
 from trainer import FasterRCNNTrainer
@@ -12,19 +12,17 @@ from utils import array_tool as at
 ## load image
 image_name = "/demo.jpg"
 img = read_image(os.path.dirname(os.path.abspath(__file__))+image_name)
-img = t.from_numpy(img)[None]
+img = torch.from_numpy(img)[None]
 
 faster_rcnn = FasterRCNNVGG16()
 
-
-_bboxes, _labels, _scores = faster_rcnn.predict(img,visualize=True)
-
-trainer = FasterRCNNTrainer(faster_rcnn).cuda()
+# try 1
 filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth"
-trainer.load(filename)
+state_dict = torch.load(filename)
+faster_rcnn.load_state_dict(state_dict)
+
 opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
 _bboxes, _labels, _scores = faster_rcnn.predict(img,visualize=True)
-_bboxes, _labels, _scores = trainer.faster_rcnn.predict(img,visualize=True)
 
 vis_bbox(at.tonumpy(img[0]),
          at.tonumpy(_bboxes[0]),

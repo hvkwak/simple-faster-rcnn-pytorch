@@ -422,8 +422,8 @@ class ProposalCreator:
         # unNOTE: somthing is wrong here!
         # TODO: remove cuda.to_gpu
         keep = nms(
-            torch.from_numpy(roi).cuda(),
-            torch.from_numpy(score).cuda(),
+            torch.from_numpy(roi),
+            torch.from_numpy(score),
             self.nms_thresh)
         if n_post_nms > 0:
             keep = keep[:n_post_nms]
