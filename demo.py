@@ -23,7 +23,7 @@ faster_rcnn = FasterRCNNVGG16()
 ## https://github.com/playerkk/face-py-faster-rcnn
 
 # try 1
-filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth"
+filename = '/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth'
 state_dict = torch.load(filename)
 faster_rcnn.load_state_dict(state_dict)
 
