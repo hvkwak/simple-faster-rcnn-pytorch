@@ -129,6 +129,7 @@ class FasterRCNN(nn.Module):
         h = self.extractor(x)
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.rpn(h, img_size, scale)
+        visualize_RPN(rois, scale)
         
         roi_cls_locs, roi_scores = self.head(
             h, rois, roi_indices)
