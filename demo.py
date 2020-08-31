@@ -22,6 +22,7 @@ state_dict = torch.load(filename)
 faster_rcnn.load_state_dict(state_dict)
 
 opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
+
 _bboxes, _labels, _scores = faster_rcnn.predict(img,visualize=True)
 
 vis_bbox(at.tonumpy(img[0]),
