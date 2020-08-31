@@ -221,7 +221,8 @@ class FasterRCNN(nn.Module):
             sizes = list()
             for img in imgs:
                 size = img.shape[1:]
-                img = preprocess(at.tonumpy(img))
+                img, scale = preprocess(at.tonumpy(img))
+                self.scale = scale
                 prepared_imgs.append(img)
                 sizes.append(size)
         else:

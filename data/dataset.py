@@ -71,7 +71,7 @@ def preprocess(img, min_size=600, max_size=1000):
         normalize = caffe_normalize
     else:
         normalize = pytorch_normalze
-    return normalize(img)
+    return normalize(img), scale
 
 
 class Transform(object):
