@@ -15,12 +15,10 @@ img = t.from_numpy(img)[None]
 
 faster_rcnn = FasterRCNNVGG16()
 trainer = FasterRCNNTrainer(faster_rcnn).cuda()
-
-trainer.load('/home/cy/chainer_best_model_converted_to_pytorch_0.7053.pth')
+filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth"
+trainer.load(filename)
 opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
 _bboxes, _labels, _scores = trainer.faster_rcnn.predict(img,visualize=True)
-
-
 vis_bbox(at.tonumpy(img[0]),
          at.tonumpy(_bboxes[0]),
          at.tonumpy(_labels[0]).reshape(-1),
