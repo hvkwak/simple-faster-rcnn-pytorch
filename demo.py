@@ -13,11 +13,11 @@ from utils import array_tool as at
 image_name = "/demo.jpg"
 img = read_image(os.path.dirname(os.path.abspath(__file__))+image_name)
 img = torch.from_numpy(img)[None]
-
 faster_rcnn = FasterRCNNVGG16()
 
 # try 1
-filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth"
+
+filename = '/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth'
 state_dict = torch.load(filename)
 faster_rcnn.load_state_dict(state_dict)
 

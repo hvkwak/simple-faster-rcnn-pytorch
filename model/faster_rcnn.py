@@ -1,5 +1,9 @@
 # from __future__ import  absolute_import
 # from __future__ import division
+import os
+import sys
+sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
+
 import torch as t
 import numpy as np
 from utils import array_tool as at
@@ -127,8 +131,7 @@ class FasterRCNN(nn.Module):
         img_size = x.shape[2:]
 
         h = self.extractor(x)
-        rpn_locs, rpn_scores, rois, roi_indices, anchor = \
-            self.rpn(h, img_size, scale)
+        rpn_locs, rpn_scores, rois, roi_indices, anchor = self.rpn(h, img_size, scale)
         visualize_RPN(rois, self.scale)
         
         roi_cls_locs, roi_scores = self.head(
@@ -314,3 +317,4 @@ def visualize_RPN(rois, scale):
         rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
         ax.add_patch(rect)
     plt.show()
+    print("Hello world!")
