@@ -129,7 +129,7 @@ class FasterRCNN(nn.Module):
         h = self.extractor(x)
         rpn_locs, rpn_scores, rois, roi_indices, anchor = \
             self.rpn(h, img_size, scale)
-        visualize_RPN(rois, scale)
+        visualize_RPN(rois, self.scale)
         
         roi_cls_locs, roi_scores = self.head(
             h, rois, roi_indices)
@@ -291,8 +291,6 @@ class FasterRCNN(nn.Module):
         for param_group in self.optimizer.param_groups:
             param_group['lr'] *= decay
         return self.optimizer
-
-
 
 
 def visualize_RPN(rois, scale):
