@@ -17,10 +17,9 @@ trainer = FasterRCNNTrainer(faster_rcnn).cuda()
 trainer.load('/home/cy/chainer_best_model_converted_to_pytorch_0.7053.pth')
 opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
 _bboxes, _labels, _scores = trainer.faster_rcnn.predict(img,visualize=True)
+
+
 vis_bbox(at.tonumpy(img[0]),
          at.tonumpy(_bboxes[0]),
          at.tonumpy(_labels[0]).reshape(-1),
          at.tonumpy(_scores[0]).reshape(-1))
-
-
-         
