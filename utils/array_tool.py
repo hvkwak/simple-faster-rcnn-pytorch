@@ -4,7 +4,6 @@ tools to convert specified type
 import torch as t
 import numpy as np
 
-
 def rename(named_parameters, state_dict):
     '''
     renames the parameter of pretrained model

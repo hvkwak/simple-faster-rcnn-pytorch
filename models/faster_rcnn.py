@@ -125,29 +125,10 @@ class FasterRCNN(nn.Module):
         # rpn_locs, rpn_scores, anchors are obsolete
         _, _, rois, roi_indices, _ = self.rpn(h, img_size, scale)
 
-        ########################################################################
-        # Visualize RPN results
-        import matplotlib.pyplot as plt
-        import matplotlib.patches as patches
-        from PIL import Image
-        ## load image
-        image_name = "/demo.jpg"
-        img1 = Image.open('/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/'+image_name)
-        # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
-        fig, ax = plt.subplots(1)
-        ax.imshow(img1)
-        for i in range(5):
-            y1, x1, y2, x2 = rois[i, :]
-            y1, x1, y2, x2 = y1/self.scale, x1/self.scale, y2/self.scale, x2/self.scale
-            h1 = y2 - y1
-            w = x2 - x1
-            rect = patches.Rectangle((x1,y1),w,h1,linewidth=1,edgecolor='r',facecolor='none')
-            ax.add_patch(rect)
+        # visualize RPN results to see if they are working correctly:
+        visualize_RPN(rois, self.scale)
 
-        plt.show()
-        ###########################################################################
-
-
+        # feed forward weiter:
         roi_cls_locs, roi_scores = self.head(h, rois, roi_indices)
         return roi_cls_locs, roi_scores, rois, roi_indices
 
@@ -329,3 +310,25 @@ class FasterRCNN(nn.Module):
         self.train() # change it back to train mode.
         return bboxes, labels, scores
         
+
+def visualize_RPN(rois, scale):
+    # Visualize RPN results
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+    from PIL import Image
+    ## load image
+    image_name = "/demo.jpg"
+    img1 = Image.open('/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/'+image_name)
+    # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
+    fig, ax = plt.subplots(1)
+    ax.imshow(img1)
+
+    # visualize top 5 images
+    for i in range(5):
+        y1, x1, y2, x2 = rois[i, :]
+        y1, x1, y2, x2 = y1/scale, x1/scale, y2/scale, x2/scale
+        h = y2 - y1
+        w = x2 - x1
+        rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
+        ax.add_patch(rect)
+    plt.show()

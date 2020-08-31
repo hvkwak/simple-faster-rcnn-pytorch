@@ -67,7 +67,7 @@ class FasterRCNNVGG16(FasterRCNN):
     # class 0: non face(background)
     # class 1: face
     def __init__(self,
-                 n_fg_class=1,
+                 n_fg_class=20,
                  ratios=[0.5, 1, 2],
                  anchor_scales=[8, 16, 32]
                  ):
@@ -81,7 +81,7 @@ class FasterRCNNVGG16(FasterRCNN):
                                     proposal_creator_params=dict())
         head = VGG16RoIHead(
             # check if n_fg_class is correct
-            n_class=n_fg_class + 1,
+            n_class=20 + 1,
             roi_size=7,
             spatial_scale=(1. / self.feat_stride),
             classifier=classifier

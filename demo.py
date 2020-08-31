@@ -14,23 +14,20 @@ image_name = "/demo.jpg"
 img = read_image(os.path.dirname(os.path.abspath(__file__))+image_name)
 img = torch.from_numpy(img)[None]
 
-# y1, x1, y2, x2 = [105.145935, 244.01637 , 375.      , 500.      ]
-
-
 ## model
 faster_rcnn = FasterRCNNVGG16()
-# trainer = FasterRCNNTrainer(faster_rcnn)
+
 
 ## load pretrained model
 ## this pretrained model is available at:
 ## https://github.com/playerkk/face-py-faster-rcnn
 
-'''
 # try 1
-filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/vgg16_faster_rcnn_iter_80000.caffemodel.pt"
-torch.load(filename)
-'''
+filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth"
+state_dict = torch.load(filename)
+faster_rcnn.load_state_dict(state_dict)
 
+'''
 # try 2
 filename = os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/converted.h5"
 state_dict = h5py.File(filename, 'r')
@@ -39,6 +36,7 @@ state_dict = rename(faster_rcnn.named_parameters(), state_dict)
 
 ## load weights
 faster_rcnn.load_state_dict({l : torch.from_numpy(np.array(v)).view_as(p) for k, v in state_dict.items() for l, p in faster_rcnn.named_parameters() if k in l})
+'''
 
 ## predict
 bboxes, labels, scores = faster_rcnn.predict(img, visualize = True)
