@@ -322,8 +322,6 @@ def visualize_RPN(rois, scale):
     # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
     fig, ax = plt.subplots(1)
     ax.imshow(img1)
-
-    '''
     # visualize top 5 images
     for i in range(5):
         y1, x1, y2, x2 = rois[i, :]
@@ -332,5 +330,4 @@ def visualize_RPN(rois, scale):
         w = x2 - x1
         rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
         ax.add_patch(rect)
-    '''
     plt.show()

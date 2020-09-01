@@ -1,6 +1,7 @@
 import os
 import sys
 sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
+from utils.config import opt
 import numpy as np
 import torch
 import h5py
