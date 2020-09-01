@@ -2,8 +2,6 @@ from __future__ import  absolute_import
 from __future__ import  division
 import os
 import sys
-sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
-
 import torch
 from skimage import transform as sktsf
 from torchvision import transforms as tvtsf
