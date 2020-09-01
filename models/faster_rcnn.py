@@ -153,7 +153,7 @@ class FasterRCNN(nn.Module):
         """
         if preset == 'visualize':
             self.nms_thresh = 0.3
-            self.score_thresh = 0.7
+            self.score_thresh = 0.6
         elif preset == 'evaluate':
             self.nms_thresh = 0.3
             self.score_thresh = 0.05
@@ -168,42 +168,21 @@ class FasterRCNN(nn.Module):
 
         # skip cls_id = 0 because it is the background class
         for l in range(1, self.n_class):
-
-            # take class l figures and their estimated probabilities
             cls_bbox_l = raw_cls_bbox.reshape((-1, self.n_class, 4))[:, l, :]
             prob_l = raw_prob[:, l]
-
-            # check if they exceed the threshold 
-            # take those who exceeded
-            # mask = prob_l > 0.7
-            mask = prob_l.argsort()[::-1][:15] # take top 10
-            cls_bbox_l = cls_bbox_l[mask, :]
+            mask = prob_l > self.score_thresh
+            cls_bbox_l = cls_bbox_l[mask]
             prob_l = prob_l[mask]
-            
-            
-            # indexes to keep
-            keep = torchvision.ops.nms(torch.from_numpy(cls_bbox_l), torch.from_numpy(prob_l), 0.65)
-            # keep = non_maximum_suppression(np.array(cls_bbox_l), 0.5)
-            
-            # keep = non_maximum_suppression(np.array(cls_bbox_l), self.nms_thresh)
-            '''
-            try:
-                keep = keep[0][:np.where(keep[0][1:] == 0)[0].min()]
-                keep = keep.numpy()
-            except:
-                keep = keep[0]
-            '''
-            
-            '''
+            keep = torchvision.ops.nms(torch.from_numpy(cls_bbox_l), torch.from_numpy(prob_l), self.nms_thresh)
+            # import ipdb;ipdb.set_trace()
+            keep = keep.numpy()
             bbox.append(cls_bbox_l[keep])
             # The labels are in [0, self.n_class - 2].
-            label.append((l - 1) * np.ones((len(mask),)))
-            score.append(prob_l[keep])
-            '''
-            bbox.append(cls_bbox_l[keep])
-            score.append(prob_l[keep])
             label.append((l - 1) * np.ones((len(keep),)))
-
+            score.append(prob_l[keep])
+        bbox = np.concatenate(bbox, axis=0).astype(np.float32)
+        label = np.concatenate(label, axis=0).astype(np.int32)
+        score = np.concatenate(score, axis=0).astype(np.float32)
         return bbox, label, score
 
     @torch.no_grad()

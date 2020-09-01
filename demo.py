@@ -45,6 +45,7 @@ faster_rcnn.load_state_dict({l : torch.from_numpy(np.array(v)).view_as(p) for k,
 bboxes, labels, scores = faster_rcnn.predict(img, visualize = True)
 
 
+'''
 # visualize
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -55,15 +56,14 @@ img1 = Image.open(os.path.dirname(os.path.abspath(__file__))+image_name)
 fig, ax = plt.subplots(1)
 ax.imshow(img1)
 for i in range(bboxes[0][0].shape[0]):
-    y1, x1, y2, x2 = bboxes[0][0][i, :]
+    y1, x1, y2, x2 = bboxes[0][i, :]
     h = y2 - y1
     w = x2 - x1
     rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
     ax.add_patch(rect)
     
 plt.show()
-
-
+'''
 
 
 
