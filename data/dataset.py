@@ -1,3 +1,5 @@
+from __future__ import  absolute_import
+from __future__ import  division
 import os
 import sys
 sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
