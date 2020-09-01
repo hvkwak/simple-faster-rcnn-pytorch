@@ -291,7 +291,7 @@ class ProposalCreator:
 
         # unNOTE: somthing is wrong here!
         # TODO: remove cuda.to_gpu
-        keep = torchvision.ops.nms(torch.from_numpy(roi), torch.from_numpy(score), 0.5)
+        keep = torchvision.ops.nms(torch.from_numpy(roi), torch.from_numpy(score), 0.65)
         '''
         keep = non_maximum_suppression(
             np.ascontiguousarray(np.asarray(roi)),

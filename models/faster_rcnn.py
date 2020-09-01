@@ -3,10 +3,11 @@ import sys
 sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
 
 import torch
+import torchvision
 import numpy as np
 from torch import nn
 from torch.nn import functional as F
-from models.utils.nms import non_maximum_suppression
+# from models.utils.nms import non_maximum_suppression
 from models.utils.bbox_tools import loc2bbox
 from utils.array_tool import tonumpy, totensor
 from data.dataset import preprocess
@@ -174,31 +175,34 @@ class FasterRCNN(nn.Module):
 
             # check if they exceed the threshold 
             # take those who exceeded
-            mask = prob_l > 0.7
-            mask = prob_l.argsort()[::-1][:3] # take top 10
+            # mask = prob_l > 0.7
+            mask = prob_l.argsort()[::-1][:15] # take top 10
             cls_bbox_l = cls_bbox_l[mask, :]
             prob_l = prob_l[mask]
             
-            '''
+            
             # indexes to keep
-            keep = non_maximum_suppression(np.array(cls_bbox_l), 0.5)
-            print(keep[1], " out of ", 70, " still there")
+            keep = torchvision.ops.nms(torch.from_numpy(cls_bbox_l), torch.from_numpy(prob_l), 0.65)
+            # keep = non_maximum_suppression(np.array(cls_bbox_l), 0.5)
+            
             # keep = non_maximum_suppression(np.array(cls_bbox_l), self.nms_thresh)
+            '''
             try:
                 keep = keep[0][:np.where(keep[0][1:] == 0)[0].min()]
                 keep = keep.numpy()
             except:
                 keep = keep[0]
+            '''
             
-            
+            '''
             bbox.append(cls_bbox_l[keep])
             # The labels are in [0, self.n_class - 2].
             label.append((l - 1) * np.ones((len(mask),)))
             score.append(prob_l[keep])
             '''
-            bbox.append(cls_bbox_l)
-            score.append(prob_l)
-            label.append((l - 1) * np.ones((len(mask),)))
+            bbox.append(cls_bbox_l[keep])
+            score.append(prob_l[keep])
+            label.append((l - 1) * np.ones((len(keep),)))
 
         return bbox, label, score
 
