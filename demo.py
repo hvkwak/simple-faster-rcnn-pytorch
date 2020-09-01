@@ -11,6 +11,7 @@ from trainer import FasterRCNNTrainer
 from utils.array_tool import rename
 from utils.vis_tool import vis_bbox
 from utils import array_tool as at
+from data.voc_dataset import VOC_BBOX_LABEL_NAMES
 
 ## load image
 image_name = "/demo.jpg"
@@ -57,12 +58,12 @@ fig, ax = plt.subplots(1)
 ax.imshow(img1)
 for i in range(bboxes[0].shape[0]):
     y1, x1, y2, x2 = bboxes[0][i, :]
-    label = np.round(labels[0][i], 2)
-    score = np.round(scores[0][i], 2)
+    label = labels[0][i]
+    score = np.round(scores[0][i], 3)
     h = y2 - y1
     w = x2 - x1
     rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
-    ax.text(x1, y1, 'Label: '+str(label)+' Score: '+str(score))
+    ax.text(x1, y1, VOC_BBOX_LABEL_NAMES[label]+"("+str(score)+")")
     ax.add_patch(rect)
 plt.show()
 

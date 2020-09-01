@@ -1,9 +1,9 @@
-import os
-import xml.etree.ElementTree as ET
+#import os
+# import xml.etree.ElementTree as ET
 
-import numpy as np
+#import numpy as np
 
-from .util import read_image
+# from .util import read_image
 
 
 class VOCBboxDataset:
