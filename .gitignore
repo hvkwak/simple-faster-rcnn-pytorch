@@ -1,6 +1,7 @@
 *.pyc
 *.caffemodel
 *.pth
+*.pt
 #  if there are still .pyc files, run this at terminal:
 #  find . -name "*.pyc" -exec git rm -f "{}" \;
 #
