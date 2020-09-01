@@ -26,6 +26,8 @@ faster_rcnn = FasterRCNNVGG16()
 filename = '/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth'
 state_dict = torch.load(filename)
 faster_rcnn.load_state_dict(state_dict)
+opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
+
 
 '''
 # try 2
