@@ -9,6 +9,8 @@ from utils.util import read_image
 from models.faster_rcnn_vgg16 import FasterRCNNVGG16
 from trainer import FasterRCNNTrainer
 from utils.array_tool import rename
+from utils.vis_tool import vis_bbox
+from utils import array_tool as at
 
 ## load image
 image_name = "/demo.jpg"
@@ -44,8 +46,6 @@ faster_rcnn.load_state_dict({l : torch.from_numpy(np.array(v)).view_as(p) for k,
 ## predict
 bboxes, labels, scores = faster_rcnn.predict(img, visualize = True)
 
-
-'''
 # visualize
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -55,15 +55,17 @@ img1 = Image.open(os.path.dirname(os.path.abspath(__file__))+image_name)
 # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
 fig, ax = plt.subplots(1)
 ax.imshow(img1)
-for i in range(bboxes[0][0].shape[0]):
+for i in range(bboxes[0].shape[0]):
     y1, x1, y2, x2 = bboxes[0][i, :]
+    label = np.round(labels[0][i], 2)
+    score = np.round(scores[0][i], 2)
     h = y2 - y1
     w = x2 - x1
     rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
+    ax.text(x1, y1, 'Label: '+str(label)+' Score: '+str(score))
     ax.add_patch(rect)
-    
 plt.show()
-'''
+
 
 
 
