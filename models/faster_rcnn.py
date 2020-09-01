@@ -12,6 +12,7 @@ from models.utils.bbox_tools import loc2bbox
 from utils.array_tool import tonumpy, totensor
 from data.dataset import preprocess
 from utils.util import read_image
+from utils.config import opt
 
 class FasterRCNN(nn.Module):
     """Base class for Faster R-CNN.
