@@ -48,7 +48,7 @@ def preprocess(img, min_size=600, max_size=1000):
         normalize = pytorch_normalze
     return normalize(img), scale
 
-'''
+
 def caffe_normalize(img):
     """
     return appr -125-125 BGR
@@ -58,7 +58,7 @@ def caffe_normalize(img):
     mean = np.array([122.7717, 115.9465, 102.9801]).reshape(3, 1, 1)
     img = (img - mean).astype(np.float32, copy=True)
     return img
-'''
+
 
 def pytorch_normalze(img):
     """
