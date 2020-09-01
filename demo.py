@@ -14,33 +14,37 @@ from utils import array_tool as at
 from data.voc_dataset import VOC_BBOX_LABEL_NAMES
 
 ## load image
-image_name = "/demo.jpg"
+image_name = "/demo4.jpg"
 img = read_image(os.path.dirname(os.path.abspath(__file__))+image_name)
 img = torch.from_numpy(img)[None]
 
 ## model
 faster_rcnn = FasterRCNNVGG16()
+faster_rcnn.demo_image = image_name
 
 ## load pretrained model
 ## this pretrained model is available at:
 ## https://github.com/playerkk/face-py-faster-rcnn
+
+'''
 # try 1
 filename = '/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/chainer_best_model_converted_to_pytorch_0.7053.pth'
 state_dict = torch.load(filename)
 faster_rcnn.load_state_dict(state_dict)
 opt.caffe_pretrain=True # this model was trained from caffe-pretrained model
-
-
 '''
+
+
+
 # try 2
-filename = "'/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/converted.h5"
-state_dict = h5py.File(filename, 'r')
+filename = '/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/vgg16_faster_rcnn_iter_80000.caffemodel.pt'
+state_dict = torch.load(filename)
 state_dict = {k: v for k, v in state_dict.items()}
 state_dict = rename(faster_rcnn.named_parameters(), state_dict)
+opt.caffe_pretrain=True
 
 ## load weights
 faster_rcnn.load_state_dict({l : torch.from_numpy(np.array(v)).view_as(p) for k, v in state_dict.items() for l, p in faster_rcnn.named_parameters() if k in l})
-'''
 
 ## predict
 bboxes, labels, scores = faster_rcnn.predict(img, visualize = True)
@@ -61,7 +65,7 @@ for i in range(bboxes[0].shape[0]):
     h = y2 - y1
     w = x2 - x1
     rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
-    ax.text(x1, y1, VOC_BBOX_LABEL_NAMES[label]+"("+str(score)+")")
+    ax.text(x1, y1, ["face"][label]+"("+str(score)+")")
     ax.add_patch(rect)
 plt.show()
 

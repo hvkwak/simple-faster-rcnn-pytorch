@@ -9,8 +9,8 @@ def rename(named_parameters, state_dict):
     renames the parameter of pretrained model
 
     Input:
-    name : the name of parameter from pretrained model
     named_parameters: parameters from faster_rcnn model
+    name : the name of parameter from pretrained model
     '''
     conv_num = np.array([0, 0, 2, 2,\
                         5, 5, 7, 7, \
@@ -56,12 +56,10 @@ def rename(named_parameters, state_dict):
             state_dict["rpn.score.weight"] = state_dict.pop(k)
         elif k == "rpn_cls_score.bias":
             state_dict["rpn.score.bias"] = state_dict.pop(k)
-        elif k == "rpn_conv":
-            state_dict["rpn.conv1.weight"] = np.array(state_dict['rpn_conv']['3x3.weight'])
-            state_dict["rpn.conv1.bias"] = np.array(state_dict['rpn_conv']['3x3.bias'])
-            del state_dict["rpn_conv"]
-        else: # something was not right.
-            return ValueError
+        elif k == "rpn_conv/3x3.weight":
+            state_dict["rpn.conv1.weight"] = state_dict.pop(k)
+        elif k == "rpn_conv/3x3.bias":
+            state_dict["rpn.conv1.bias"] = state_dict.pop(k)
     return(state_dict)
 
 

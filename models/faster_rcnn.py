@@ -74,7 +74,10 @@ class FasterRCNN(nn.Module):
         # mean and std
         self.loc_normalize_mean = loc_normalize_mean
         self.loc_normalize_std = loc_normalize_std
-        self.use_preset('evaluate')        
+        self.use_preset('evaluate')
+
+        # demo_image
+        self.demo_image = ""     
 
     @property
     def n_class(self):
@@ -127,7 +130,7 @@ class FasterRCNN(nn.Module):
         _, _, rois, roi_indices, _ = self.rpn(h, img_size, scale)
 
         # visualize RPN results to see if they are working correctly:
-        visualize_RPN(rois, self.scale)
+        visualize_RPN(rois, self.scale, self.demo_image)
 
         # feed forward weiter:
         roi_cls_locs, roi_scores = self.head(h, rois, roi_indices)
@@ -153,10 +156,10 @@ class FasterRCNN(nn.Module):
         """
         if preset == 'visualize':
             self.nms_thresh = 0.3
-            self.score_thresh = 0.65
+            self.score_thresh = 0.9
         elif preset == 'evaluate':
-            self.nms_thresh = 0.3
-            self.score_thresh = 0.05
+            self.nms_thresh = 0.1 # 0.2
+            self.score_thresh = 0.9 # 0.05
         else:
             raise ValueError('preset must be visualize or evaluate')
 
@@ -294,19 +297,19 @@ class FasterRCNN(nn.Module):
         return bboxes, labels, scores
         
 
-def visualize_RPN(rois, scale):
+def visualize_RPN(rois, scale, image):
     # Visualize RPN results
     import matplotlib.pyplot as plt
     import matplotlib.patches as patches
     from PIL import Image
     ## load image
-    image_name = "/demo.jpg"
+    image_name = image
     img1 = Image.open('/home/hyobin/Documents/in-facedemo/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/'+image_name)
     # img1 = read_image(os.path.dirname(os.path.abspath(__file__))+'/demo.jpg')
     fig, ax = plt.subplots(1)
     ax.imshow(img1)
-    # visualize top 5 images
-    for i in range(5):
+    # visualize top images
+    for i in range(10):
         y1, x1, y2, x2 = rois[i, :]
         y1, x1, y2, x2 = y1/scale, x1/scale, y2/scale, x2/scale
         h = y2 - y1
