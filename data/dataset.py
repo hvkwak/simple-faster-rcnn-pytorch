@@ -1,12 +1,10 @@
-from __future__ import  absolute_import
-from __future__ import  division
 import os
 import sys
 import torch
 from skimage import transform as sktsf
 from torchvision import transforms as tvtsf
 import numpy as np
-from models.utils.config import opt
+from utils.config import opt
 
 def preprocess(img, min_size=600, max_size=1000):
     """Preprocess an image for feature extraction.

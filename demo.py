@@ -60,7 +60,7 @@ for i in range(bboxes[0][0].shape[0]):
     w = x2 - x1
     rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
     ax.add_patch(rect)
-
+    
 plt.show()
 
 

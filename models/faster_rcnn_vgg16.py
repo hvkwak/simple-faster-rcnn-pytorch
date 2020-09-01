@@ -1,4 +1,4 @@
-from models.utils.config import opt
+from utils.config import opt
 from models.faster_rcnn import FasterRCNN
 from models.region_proposal_network import RegionProposalNetwork
 # from models.roi_module import RoIPooling2D

@@ -8,8 +8,6 @@ import numpy as np
 from models.utils.bbox_tools import bbox2loc, bbox_iou, loc2bbox
 from models.utils.nms import non_maximum_suppression
 
-
-
 '''
 class ProposalTargetCreator(object):
     """Assign ground truth bounding boxes to given RoIs.

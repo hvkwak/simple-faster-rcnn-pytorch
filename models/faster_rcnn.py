@@ -4,7 +4,6 @@ sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rc
 
 import torch
 import numpy as np
-
 from torch import nn
 from torch.nn import functional as F
 from models.utils.nms import non_maximum_suppression
@@ -175,7 +174,7 @@ class FasterRCNN(nn.Module):
 
             # check if they exceed the threshold 
             # take those who exceeded
-            # mask = prob_l > 0.7
+            mask = prob_l > 0.7
             mask = prob_l.argsort()[::-1][:3] # take top 10
             cls_bbox_l = cls_bbox_l[mask, :]
             prob_l = prob_l[mask]
