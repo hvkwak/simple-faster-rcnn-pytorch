@@ -1,16 +1,37 @@
-import time
-
+#import time
 import numpy as np
-import matplotlib
-import torch as t
-import visdom
+#import matplotlib
+#import torch as t
+# import visdom
 
 # matplotlib.use('Agg')
-from matplotlib import pyplot as plot
+#from matplotlib import pyplot as plot
 
+# visualize
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from PIL import Image
+
+
+def vis_bbox(img, bboxes, scores, labels, predicted_distances):
+    # img = Image.open(os.path.dirname(os.path.abspath(__file__))+image_name)
+    fig, ax = plt.subplots(1)
+    ax.imshow(img)
+    for i in range(bboxes[0].shape[0]):
+        y1, x1, y2, x2 = bboxes[0][i, :]
+        label = labels[i]
+        dist = predicted_distances[i]
+        #score = np.round(scores[0][i], 3)
+        h = y2 - y1
+        w = x2 - x1
+        rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
+        ax.text(x1, y1, label+"("+str(dist)+")")
+        ax.add_patch(rect)
+    plt.show()
+
+
+'''
 # from data.voc_dataset import VOC_BBOX_LABEL_NAMES
-
-
 VOC_BBOX_LABEL_NAMES = (
     'fly',
     'bike',
@@ -254,3 +275,4 @@ class Visualizer(object):
         self.log_text = d.get('log_text', '')
         self.index = d.get('index', dict())
         return self
+'''

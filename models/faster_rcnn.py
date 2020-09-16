@@ -1,7 +1,5 @@
 import os
 import sys
-sys.path.append(os.getcwd() + "/facerecognition/PyFaceRecClient/simple-faster-rcnn-pytorch/")
-
 import torch
 import torchvision
 import numpy as np
@@ -130,7 +128,7 @@ class FasterRCNN(nn.Module):
         _, _, rois, roi_indices, _ = self.rpn(h, img_size, scale)
 
         # visualize RPN results to see if they are working correctly:
-        visualize_RPN(rois, self.scale, self.demo_image)
+        # visualize_RPN(rois, self.scale, self.demo_image)
 
         # feed forward weiter:
         roi_cls_locs, roi_scores = self.head(h, rois, roi_indices)
@@ -168,6 +166,7 @@ class FasterRCNN(nn.Module):
         bbox = list()
         label = list()
         score = list()
+        # masks = list()
 
         # skip cls_id = 0 because it is the background class
         for l in range(1, self.n_class):
@@ -176,16 +175,21 @@ class FasterRCNN(nn.Module):
             mask = prob_l > self.score_thresh
             cls_bbox_l = cls_bbox_l[mask]
             prob_l = prob_l[mask]
+            
             keep = torchvision.ops.nms(torch.from_numpy(cls_bbox_l), torch.from_numpy(prob_l), self.nms_thresh)
+            # mask = np.where(mask)[0]
+            
             # import ipdb;ipdb.set_trace()
             keep = keep.numpy()
             bbox.append(cls_bbox_l[keep])
             # The labels are in [0, self.n_class - 2].
             label.append((l - 1) * np.ones((len(keep),)))
             score.append(prob_l[keep])
+            # masks.append(mask[keep])
         bbox = np.concatenate(bbox, axis=0).astype(np.float32)
         label = np.concatenate(label, axis=0).astype(np.int32)
         score = np.concatenate(score, axis=0).astype(np.float32)
+        # masks = np.concatenate(masks, axis = 0)
         return bbox, label, score
 
     @torch.no_grad()
@@ -235,6 +239,7 @@ class FasterRCNN(nn.Module):
         bboxes = list()
         labels = list()
         scores = list()
+        masks = list()
         for img, size in zip(prepared_imgs, sizes):
             # change it to tensor
             # [None] addes up one more dimension
@@ -245,7 +250,7 @@ class FasterRCNN(nn.Module):
 
             # fast forward the image
             # img   -> (extractor+rpn+head) -> roi_cls_loc, roi_scores, rois
-            roi_cls_loc, roi_scores, rois, _ = self(img, scale=scale)
+            roi_cls_loc, roi_scores, rois, roi_indices = self(img, scale=scale)
 
             # NOTE:
             # rois.shape =  (300, 4)
@@ -291,6 +296,7 @@ class FasterRCNN(nn.Module):
             bboxes.append(bbox)
             labels.append(label)
             scores.append(score)
+            # masks.append(mask)
 
         self.use_preset('evaluate')
         self.train() # change it back to train mode.
