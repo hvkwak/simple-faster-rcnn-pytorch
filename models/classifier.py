@@ -40,10 +40,10 @@ class Classifier_VGG(object):
         descriptors = [None]*self.num_class
         for i in range(self.num_class):
             descriptor = torch.load(self.descriptor_path+"Train_descriptors{}.pt".format(i+1))
-            # Zentroid berechnen:
-            descriptors[i] = torch.mean(descriptor, axis = 0)
-        # save the zentroids
-        self.descriptors = torch.stack(descriptors)
+            # load all the descriptors.
+            descriptors[i] = descriptor
+        # save the descriptors.
+        self.descriptors = descriptors
     
     @torch.no_grad()
     def predict(self, img, bboxes):
@@ -54,10 +54,15 @@ class Classifier_VGG(object):
         img = np.asarray(img)
         img = img[:, ::-1, :, :].copy()
         '''
+        n_class = len(self.descriptors)
         bbox_num = bboxes[0].shape[0]
         predicted_distances = [None]*bbox_num
-        predicted_names = [None]*bbox_num
+        predicted_names = ["Unknown"]*bbox_num
         for i in range(bbox_num):
+            # initialize distance and names
+            best_NN_dist = np.Inf
+            best_NN_names = "Unknown"
+            
             y1, x1, y2, x2 = bboxes[0][i, :].astype(np.int32)
             y1, x1 = y1+1, x1+1
             img_piece = np.asarray(img[0]).transpose(1, 2, 0)
@@ -66,11 +71,17 @@ class Classifier_VGG(object):
             img_piece -= torch.Tensor(np.array([129.1863, 104.7624, 93.5940])).view(1, 3, 1, 1)
             img_piece = self.model(img_piece)[0]
 
-            # euclidean distance to zentroids
-            NN = torch.sum((self.descriptors - img_piece[0])**2, 1)
-            buffer = NN.min(0)
-            predicted_distances[i] = buffer[0]
-            predicted_names[i] = self.names[buffer[1]]
+            # euclidean distance to all descriptors and nearest neighbor(NN)
+            for j in range(n_class):
+                ## NN Distances per class
+                NN = torch.sum((self.descriptors[j] - img_piece[0])**2, 1)
+                buffer = NN.min(0)
+                if buffer[0] < best_NN_dist:
+                    best_NN_dist = buffer[0]
+                    predicted_distances[i] = best_NN_dist.data.cpu().numpy()
+                    if buffer[0] < 6000:
+                        predicted_names[i] = self.names[j]
+                        
         return(predicted_distances, predicted_names)
 
     def labels_creator(self, train_path):

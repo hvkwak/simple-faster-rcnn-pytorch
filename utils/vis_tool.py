@@ -25,7 +25,7 @@ def vis_bbox(img, bboxes, scores, labels, predicted_distances):
         h = y2 - y1
         w = x2 - x1
         rect = patches.Rectangle((x1,y1),w,h,linewidth=1,edgecolor='r',facecolor='none')
-        ax.text(x1, y1, label+"("+str(dist)+")")
+        ax.text(x1, y1, label+"("+str(dist)+")", color = "green")
         ax.add_patch(rect)
     plt.show()
 
